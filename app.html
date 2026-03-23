@@ -1,0 +1,1165 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CRM Client</title>
+
+  <!-- Leaflet (carte) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet"/>
+
+  <style>
+    /* ── VARIABLES ─────────────────────────────────────── */
+    :root {
+      --bg:       #f5f4f0;
+      --surface:  #ffffff;
+      --border:   #e4e2dc;
+      --text:     #1a1916;
+      --muted:    #8a8880;
+      --accent:   #2d5a3d;
+      --accent-l: #e8f0eb;
+      --danger:   #c0392b;
+      --shadow:   0 2px 12px rgba(0,0,0,0.07);
+      --radius:   12px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── LOGIN ─────────────────────────────────────────── */
+    #page-login {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: var(--bg);
+    }
+
+    .login-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 48px 40px;
+      width: 380px;
+      box-shadow: var(--shadow);
+      text-align: center;
+    }
+
+    .login-card .logo {
+      font-family: 'DM Serif Display', serif;
+      font-size: 28px;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+
+    .login-card .subtitle {
+      color: var(--muted);
+      font-size: 14px;
+      margin-bottom: 36px;
+    }
+
+    .login-card input {
+      width: 100%;
+      padding: 14px 16px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 15px;
+      font-family: inherit;
+      background: var(--bg);
+      color: var(--text);
+      outline: none;
+      transition: border-color .2s;
+      margin-bottom: 16px;
+      text-align: center;
+      letter-spacing: 2px;
+    }
+
+    .login-card input:focus { border-color: var(--accent); }
+
+    .login-card .error {
+      color: var(--danger);
+      font-size: 13px;
+      margin-bottom: 12px;
+      min-height: 18px;
+    }
+
+    /* ── BOUTONS ───────────────────────────────────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 22px;
+      border-radius: var(--radius);
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      transition: all .2s;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      width: 100%;
+      justify-content: center;
+      padding: 14px;
+    }
+
+    .btn-primary:hover { background: #234a32; }
+
+    .btn-secondary {
+      background: var(--surface);
+      color: var(--text);
+      border: 1.5px solid var(--border);
+    }
+
+    .btn-secondary:hover { background: var(--bg); }
+
+    .btn-danger {
+      background: #fdf0ef;
+      color: var(--danger);
+      border: 1.5px solid #f5c6c2;
+    }
+
+    .btn-danger:hover { background: #fbe5e3; }
+
+    /* ── LAYOUT PRINCIPAL ──────────────────────────────── */
+    #page-app { display: none; min-height: 100vh; }
+
+    /* Sidebar */
+    .sidebar {
+      position: fixed;
+      left: 0; top: 0; bottom: 0;
+      width: 240px;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      padding: 28px 20px;
+      z-index: 100;
+    }
+
+    .sidebar .brand {
+      font-family: 'DM Serif Display', serif;
+      font-size: 22px;
+      color: var(--accent);
+      margin-bottom: 32px;
+      padding-left: 4px;
+    }
+
+    .sidebar nav a {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all .2s;
+      margin-bottom: 4px;
+    }
+
+    .sidebar nav a:hover, .sidebar nav a.active {
+      background: var(--accent-l);
+      color: var(--accent);
+    }
+
+    .sidebar .logout {
+      margin-top: auto;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      color: var(--muted);
+      font-size: 13px;
+      cursor: pointer;
+      border-radius: 8px;
+      border: none;
+      background: none;
+      font-family: inherit;
+      transition: all .2s;
+      width: 100%;
+    }
+
+    .sidebar .logout:hover { color: var(--danger); background: #fdf0ef; }
+
+    /* Main content */
+    .main {
+      margin-left: 240px;
+      padding: 36px 40px;
+      min-height: 100vh;
+    }
+
+    /* ── PAGE LISTE ────────────────────────────────────── */
+    #view-list { display: none; }
+
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 28px;
+    }
+
+    .page-header h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 28px;
+      font-weight: 400;
+    }
+
+    .page-header .count {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    /* Barre de recherche & filtres */
+    .search-bar {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .search-bar input, .search-bar select {
+      padding: 11px 16px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      font-family: inherit;
+      font-size: 14px;
+      background: var(--surface);
+      color: var(--text);
+      outline: none;
+      transition: border-color .2s;
+    }
+
+    .search-bar input { flex: 1; min-width: 200px; }
+    .search-bar input:focus, .search-bar select:focus { border-color: var(--accent); }
+
+    /* Tableau clients */
+    .table-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead th {
+      padding: 14px 20px;
+      text-align: left;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .6px;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    thead th:hover { color: var(--accent); }
+
+    thead th .sort-icon { margin-left: 4px; opacity: .5; }
+
+    tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background .15s;
+      cursor: pointer;
+    }
+
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: var(--accent-l); }
+
+    tbody td {
+      padding: 16px 20px;
+      font-size: 14px;
+    }
+
+    .avatar {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 13px;
+      flex-shrink: 0;
+    }
+
+    .client-name-cell {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .empty-state {
+      padding: 60px 20px;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    .empty-state svg { margin-bottom: 16px; opacity: .4; }
+    .empty-state p { font-size: 15px; }
+
+    /* ── PAGE FICHE CLIENT ─────────────────────────────── */
+    #view-detail { display: none; }
+
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 13px;
+      cursor: pointer;
+      border: none;
+      background: none;
+      font-family: inherit;
+      padding: 0;
+      margin-bottom: 24px;
+      transition: color .2s;
+    }
+
+    .back-btn:hover { color: var(--accent); }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: var(--shadow);
+    }
+
+    .card-full { grid-column: 1 / -1; }
+
+    .card-title {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+
+    .client-hero {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 0;
+    }
+
+    .avatar-lg {
+      width: 60px; height: 60px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    .client-hero-info h2 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 24px;
+      font-weight: 400;
+    }
+
+    .client-hero-info .company {
+      color: var(--muted);
+      font-size: 14px;
+      margin-top: 2px;
+    }
+
+    .info-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .info-row:last-child { border-bottom: none; }
+
+    .info-icon {
+      width: 34px; height: 34px;
+      border-radius: 8px;
+      background: var(--accent-l);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      color: var(--accent);
+    }
+
+    .info-label {
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      margin-bottom: 2px;
+    }
+
+    .info-value {
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .info-value a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .info-value a:hover { text-decoration: underline; }
+
+    /* Carte */
+    #map {
+      height: 300px;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .map-placeholder {
+      height: 300px;
+      border-radius: 12px;
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+      font-size: 14px;
+      gap: 8px;
+    }
+
+    /* Notes */
+    .notes-text {
+      font-size: 14px;
+      line-height: 1.7;
+      color: var(--text);
+      white-space: pre-wrap;
+      min-height: 60px;
+    }
+
+    .notes-text.empty { color: var(--muted); font-style: italic; }
+
+    /* ── FORMULAIRE ────────────────────────────────────── */
+    #view-form { display: none; }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group.full { grid-column: 1 / -1; }
+
+    .form-group label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .5px;
+    }
+
+    .form-group input, .form-group textarea, .form-group select {
+      padding: 12px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      font-family: inherit;
+      font-size: 14px;
+      background: var(--bg);
+      color: var(--text);
+      outline: none;
+      transition: border-color .2s;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus,
+    .form-group select:focus { border-color: var(--accent); background: var(--surface); }
+
+    .form-group textarea { resize: vertical; min-height: 100px; }
+
+    .form-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+      margin-top: 24px;
+    }
+
+    /* ── TOAST ─────────────────────────────────────────── */
+    .toast {
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      background: var(--text);
+      color: #fff;
+      padding: 14px 20px;
+      border-radius: var(--radius);
+      font-size: 14px;
+      font-weight: 500;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all .3s;
+      z-index: 999;
+    }
+
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast.success { background: var(--accent); }
+    .toast.error { background: var(--danger); }
+
+    /* ── LOADER ────────────────────────────────────────── */
+    .loader {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 60px;
+      color: var(--muted);
+      gap: 10px;
+    }
+
+    .spinner {
+      width: 20px; height: 20px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── RESPONSIF BASIQUE ─────────────────────────────── */
+    @media (max-width: 900px) {
+      .sidebar { display: none; }
+      .main { margin-left: 0; padding: 20px; }
+      .detail-grid { grid-template-columns: 1fr; }
+      .form-grid { grid-template-columns: 1fr; }
+      .form-group.full { grid-column: 1; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!--  PAGE LOGIN                                           -->
+<!-- ══════════════════════════════════════════════════════ -->
+<div id="page-login">
+  <div class="login-card">
+    <div class="logo">◈ ClientBase</div>
+    <div class="subtitle">Accès sécurisé à la gestion clients</div>
+    <input type="password" id="login-input" placeholder="Mot de passe" autocomplete="current-password"/>
+    <div class="error" id="login-error"></div>
+    <button class="btn btn-primary" onclick="handleLogin()">Se connecter</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!--  PAGE APP                                             -->
+<!-- ══════════════════════════════════════════════════════ -->
+<div id="page-app">
+
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="brand">◈ ClientBase</div>
+    <nav>
+      <a href="#" onclick="showView('list')" id="nav-list">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Tous les clients
+      </a>
+      <a href="#" onclick="showView('form', null)" id="nav-add">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+        Ajouter un client
+      </a>
+    </nav>
+    <button class="logout" onclick="logout()">
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16,17 21,12 16,7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Déconnexion
+    </button>
+  </nav>
+
+  <!-- Contenu principal -->
+  <div class="main">
+
+    <!-- ── LISTE ── -->
+    <div id="view-list">
+      <div class="page-header">
+        <div>
+          <h1>Clients</h1>
+          <div class="count" id="client-count">—</div>
+        </div>
+        <button class="btn btn-primary" onclick="showView('form', null)">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Nouveau client
+        </button>
+      </div>
+
+      <div class="search-bar">
+        <input type="text" id="search-input" placeholder="🔍  Rechercher par nom, prénom, ville…" oninput="renderTable()"/>
+        <select id="filter-region" onchange="renderTable()">
+          <option value="">Toutes les régions</option>
+        </select>
+        <select id="sort-select" onchange="renderTable()">
+          <option value="nom">Trier par nom</option>
+          <option value="ville">Trier par ville</option>
+          <option value="region">Trier par région</option>
+          <option value="dateCreation">Trier par date</option>
+        </select>
+      </div>
+
+      <div class="table-wrap">
+        <div id="table-loader" class="loader">
+          <div class="spinner"></div> Chargement des clients…
+        </div>
+        <table id="client-table" style="display:none">
+          <thead>
+            <tr>
+              <th>Client</th>
+              <th>Entreprise</th>
+              <th>Ville</th>
+              <th>Région</th>
+              <th>Téléphone</th>
+              <th>Email</th>
+            </tr>
+          </thead>
+          <tbody id="table-body"></tbody>
+        </table>
+        <div id="table-empty" class="empty-state" style="display:none">
+          <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <p>Aucun client trouvé</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── FICHE CLIENT ── -->
+    <div id="view-detail">
+      <button class="back-btn" onclick="showView('list')">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12,19 5,12 12,5"/></svg>
+        Retour à la liste
+      </button>
+
+      <div class="detail-grid">
+
+        <!-- Identité -->
+        <div class="card">
+          <div class="card-title">Identité</div>
+          <div class="client-hero">
+            <div class="avatar-lg" id="d-avatar"></div>
+            <div class="client-hero-info">
+              <h2 id="d-fullname"></h2>
+              <div class="company" id="d-company"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Localisation -->
+        <div class="card">
+          <div class="card-title">Localisation</div>
+          <div class="info-row">
+            <div class="info-icon">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            </div>
+            <div>
+              <div class="info-label">Adresse</div>
+              <div class="info-value" id="d-adresse"></div>
+            </div>
+          </div>
+          <div class="info-row">
+            <div class="info-icon">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="3,11 22,2 13,21 11,13 3,11"/></svg>
+            </div>
+            <div>
+              <div class="info-label">Région</div>
+              <div class="info-value" id="d-region"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Contact -->
+        <div class="card">
+          <div class="card-title">Contact</div>
+          <div class="info-row">
+            <div class="info-icon">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13 19.79 19.79 0 0 1 1.61 4.42 2 2 0 0 1 3.58 2.25h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21.73 16.92z"/></svg>
+            </div>
+            <div>
+              <div class="info-label">Téléphone</div>
+              <div class="info-value" id="d-tel"></div>
+            </div>
+          </div>
+          <div class="info-row">
+            <div class="info-icon">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            </div>
+            <div>
+              <div class="info-label">Email</div>
+              <div class="info-value" id="d-email"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Notes -->
+        <div class="card">
+          <div class="card-title">Notes</div>
+          <div class="notes-text" id="d-notes"></div>
+        </div>
+
+        <!-- Carte -->
+        <div class="card card-full">
+          <div class="card-title">Localisation sur la carte</div>
+          <div id="map"></div>
+          <div id="map-placeholder" class="map-placeholder" style="display:none">
+            <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            Adresse introuvable sur la carte
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Actions -->
+      <div class="form-actions" style="margin-top:20px">
+        <button class="btn btn-danger" id="btn-delete" onclick="deleteCurrentClient()">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3,6 5,6 21,6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+          Supprimer
+        </button>
+        <button class="btn btn-secondary" id="btn-edit" onclick="editCurrentClient()">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Modifier
+        </button>
+      </div>
+    </div>
+
+    <!-- ── FORMULAIRE ── -->
+    <div id="view-form">
+      <button class="back-btn" onclick="showView('list')">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12,19 5,12 12,5"/></svg>
+        Retour à la liste
+      </button>
+
+      <div class="page-header" style="margin-bottom:24px">
+        <h1 id="form-title" style="font-family:'DM Serif Display',serif;font-size:26px;font-weight:400">Nouveau client</h1>
+      </div>
+
+      <div class="card">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Nom *</label>
+            <input type="text" id="f-nom" placeholder="Dupont"/>
+          </div>
+          <div class="form-group">
+            <label>Prénom *</label>
+            <input type="text" id="f-prenom" placeholder="Jean"/>
+          </div>
+          <div class="form-group full">
+            <label>Entreprise</label>
+            <input type="text" id="f-entreprise" placeholder="Nom de l'entreprise"/>
+          </div>
+          <div class="form-group full">
+            <label>Adresse</label>
+            <input type="text" id="f-adresse" placeholder="12 rue de la Paix"/>
+          </div>
+          <div class="form-group">
+            <label>Code postal</label>
+            <input type="text" id="f-cp" placeholder="75001"/>
+          </div>
+          <div class="form-group">
+            <label>Ville</label>
+            <input type="text" id="f-ville" placeholder="Paris"/>
+          </div>
+          <div class="form-group full">
+            <label>Région</label>
+            <input type="text" id="f-region" placeholder="Île-de-France"/>
+          </div>
+          <div class="form-group">
+            <label>Téléphone</label>
+            <input type="tel" id="f-tel" placeholder="06 00 00 00 00"/>
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="f-email" placeholder="jean@exemple.fr"/>
+          </div>
+          <div class="form-group full">
+            <label>Notes</label>
+            <textarea id="f-notes" placeholder="Informations complémentaires…"></textarea>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn btn-secondary" onclick="showView('list')">Annuler</button>
+          <button class="btn btn-primary" id="btn-save" onclick="saveClient()">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20,6 9,17 4,12"/></svg>
+            Enregistrer
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- .main -->
+</div><!-- #page-app -->
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!--  JAVASCRIPT                                           -->
+<!-- ══════════════════════════════════════════════════════ -->
+<script>
+// ─── CONFIG ─────────────────────────────────────────────
+// ⚠️  Remplace cette URL par l'URL de ton Google Apps Script
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxJeFsmu1Zo8yuzBFMmwVEfkWI3oNetGoNrAMZYGPZzI3a-4GaoNVGUlCf6egMhepoE/exec";
+
+// ─── ÉTAT ────────────────────────────────────────────────
+let password = "";
+let clients = [];
+let currentClient = null;
+let editingId = null;
+let leafletMap = null;
+
+// ─── LOGIN ───────────────────────────────────────────────
+document.getElementById('login-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') handleLogin();
+});
+
+async function handleLogin() {
+  const pwd = document.getElementById('login-input').value.trim();
+  if (!pwd) return;
+
+  const btn = document.querySelector('#page-login .btn-primary');
+  btn.textContent = "Connexion…";
+  btn.disabled = true;
+
+  // Test de connexion : on demande la liste
+  const res = await api('getAll', {}, pwd);
+
+  if (res && res.success) {
+    password = pwd;
+    clients = res.clients || [];
+    document.getElementById('page-login').style.display = 'none';
+    document.getElementById('page-app').style.display = 'block';
+    showView('list');
+  } else {
+    document.getElementById('login-error').textContent = "Mot de passe incorrect.";
+    btn.textContent = "Se connecter";
+    btn.disabled = false;
+  }
+}
+
+function logout() {
+  password = "";
+  clients = [];
+  document.getElementById('page-login').style.display = 'flex';
+  document.getElementById('page-app').style.display = 'none';
+  document.getElementById('login-input').value = '';
+  document.getElementById('login-error').textContent = '';
+}
+
+// ─── NAVIGATION ──────────────────────────────────────────
+function showView(view, data) {
+  ['list','detail','form'].forEach(v => {
+    document.getElementById('view-' + v).style.display = 'none';
+  });
+  document.querySelectorAll('.sidebar nav a').forEach(a => a.classList.remove('active'));
+
+  if (view === 'list') {
+    document.getElementById('view-list').style.display = 'block';
+    document.getElementById('nav-list').classList.add('active');
+    renderTable();
+  } else if (view === 'detail') {
+    document.getElementById('view-detail').style.display = 'block';
+    renderDetail(data);
+  } else if (view === 'form') {
+    document.getElementById('view-form').style.display = 'block';
+    document.getElementById('nav-add').classList.add('active');
+    renderForm(data);
+  }
+
+  return false;
+}
+
+// ─── LISTE ───────────────────────────────────────────────
+async function loadClients() {
+  document.getElementById('table-loader').style.display = 'flex';
+  document.getElementById('client-table').style.display = 'none';
+
+  const res = await api('getAll');
+  if (res && res.success) {
+    clients = res.clients || [];
+    updateRegionFilter();
+  }
+  document.getElementById('table-loader').style.display = 'none';
+  document.getElementById('client-table').style.display = 'table';
+  renderTable();
+}
+
+function renderTable() {
+  const search = document.getElementById('search-input').value.toLowerCase();
+  const region = document.getElementById('filter-region').value;
+  const sort   = document.getElementById('sort-select').value;
+
+  let filtered = clients.filter(c => {
+    const matchSearch = !search ||
+      (c.nom || '').toLowerCase().includes(search) ||
+      (c.prenom || '').toLowerCase().includes(search) ||
+      (c.ville || '').toLowerCase().includes(search) ||
+      (c.entreprise || '').toLowerCase().includes(search);
+    const matchRegion = !region || c.region === region;
+    return matchSearch && matchRegion;
+  });
+
+  filtered.sort((a, b) => (a[sort] || '').localeCompare(b[sort] || ''));
+
+  const tbody = document.getElementById('table-body');
+  const empty = document.getElementById('table-empty');
+
+  document.getElementById('client-count').textContent =
+    `${filtered.length} client${filtered.length !== 1 ? 's' : ''}`;
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = '';
+    empty.style.display = 'flex';
+    return;
+  }
+
+  empty.style.display = 'none';
+  tbody.innerHTML = filtered.map(c => `
+    <tr onclick="showView('detail', '${c.id}')">
+      <td>
+        <div class="client-name-cell">
+          <div class="avatar">${initials(c.nom, c.prenom)}</div>
+          <span>${c.prenom || ''} ${c.nom || ''}</span>
+        </div>
+      </td>
+      <td>${c.entreprise || '<span style="color:var(--muted)">—</span>'}</td>
+      <td>${c.ville || '<span style="color:var(--muted)">—</span>'}</td>
+      <td>${c.region || '<span style="color:var(--muted)">—</span>'}</td>
+      <td>${c.telephone ? `<a href="tel:${c.telephone}" onclick="event.stopPropagation()">${c.telephone}</a>` : '<span style="color:var(--muted)">—</span>'}</td>
+      <td>${c.email ? `<a href="mailto:${c.email}" onclick="event.stopPropagation()">${c.email}</a>` : '<span style="color:var(--muted)">—</span>'}</td>
+    </tr>
+  `).join('');
+}
+
+function updateRegionFilter() {
+  const regions = [...new Set(clients.map(c => c.region).filter(Boolean))].sort();
+  const sel = document.getElementById('filter-region');
+  const current = sel.value;
+  sel.innerHTML = '<option value="">Toutes les régions</option>' +
+    regions.map(r => `<option value="${r}"${r === current ? ' selected' : ''}>${r}</option>`).join('');
+}
+
+// ─── FICHE DÉTAIL ─────────────────────────────────────────
+function renderDetail(id) {
+  const c = clients.find(x => x.id === id);
+  if (!c) { showView('list'); return; }
+  currentClient = c;
+
+  document.getElementById('d-avatar').textContent = initials(c.nom, c.prenom);
+  document.getElementById('d-fullname').textContent = `${c.prenom || ''} ${c.nom || ''}`.trim();
+  document.getElementById('d-company').textContent = c.entreprise || '';
+
+  const adresse = [c.adresse, c.codePostal, c.ville].filter(Boolean).join(', ');
+  document.getElementById('d-adresse').textContent = adresse || '—';
+  document.getElementById('d-region').textContent = c.region || '—';
+
+  const telEl = document.getElementById('d-tel');
+  telEl.innerHTML = c.telephone
+    ? `<a href="tel:${c.telephone}">${c.telephone}</a>` : '—';
+
+  const emailEl = document.getElementById('d-email');
+  emailEl.innerHTML = c.email
+    ? `<a href="mailto:${c.email}">${c.email}</a>` : '—';
+
+  const notesEl = document.getElementById('d-notes');
+  notesEl.textContent = c.notes || 'Aucune note';
+  notesEl.className = 'notes-text' + (c.notes ? '' : ' empty');
+
+  // Carte
+  initMap(adresse);
+}
+
+// ─── CARTE ────────────────────────────────────────────────
+async function initMap(adresse) {
+  const mapEl = document.getElementById('map');
+  const placeholder = document.getElementById('map-placeholder');
+  mapEl.style.display = 'block';
+  placeholder.style.display = 'none';
+
+  if (leafletMap) { leafletMap.remove(); leafletMap = null; }
+
+  if (!adresse) { mapEl.style.display = 'none'; placeholder.style.display = 'flex'; return; }
+
+  try {
+    // Géocodage via Nominatim (OpenStreetMap, gratuit, sans clé API)
+    const encoded = encodeURIComponent(adresse + ', France');
+    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encoded}&limit=1`);
+    const data = await res.json();
+
+    if (!data.length) throw new Error('Introuvable');
+
+    const lat = parseFloat(data[0].lat);
+    const lon = parseFloat(data[0].lon);
+
+    leafletMap = L.map('map').setView([lat, lon], 15);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap'
+    }).addTo(leafletMap);
+
+    // Marqueur custom couleur accent
+    const icon = L.divIcon({
+      className: '',
+      html: `<div style="width:14px;height:14px;background:#2d5a3d;border:3px solid #fff;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,.3)"></div>`,
+      iconSize: [14, 14],
+      iconAnchor: [7, 7]
+    });
+    L.marker([lat, lon], { icon }).addTo(leafletMap).bindPopup(adresse);
+
+  } catch {
+    mapEl.style.display = 'none';
+    placeholder.style.display = 'flex';
+  }
+}
+
+// ─── FORMULAIRE ──────────────────────────────────────────
+function renderForm(id) {
+  editingId = id || null;
+  document.getElementById('form-title').textContent = id ? 'Modifier le client' : 'Nouveau client';
+
+  const fields = ['nom','prenom','adresse','cp','ville','region','tel','email','notes'];
+  fields.forEach(f => document.getElementById('f-' + f).value = '');
+  document.getElementById('f-entreprise').value = '';
+
+  if (id) {
+    const c = clients.find(x => x.id === id);
+    if (c) {
+      document.getElementById('f-nom').value       = c.nom || '';
+      document.getElementById('f-prenom').value    = c.prenom || '';
+      document.getElementById('f-entreprise').value= c.entreprise || '';
+      document.getElementById('f-adresse').value   = c.adresse || '';
+      document.getElementById('f-cp').value        = c.codePostal || '';
+      document.getElementById('f-ville').value     = c.ville || '';
+      document.getElementById('f-region').value    = c.region || '';
+      document.getElementById('f-tel').value       = c.telephone || '';
+      document.getElementById('f-email').value     = c.email || '';
+      document.getElementById('f-notes').value     = c.notes || '';
+    }
+  }
+}
+
+async function saveClient() {
+  const nom = document.getElementById('f-nom').value.trim();
+  const prenom = document.getElementById('f-prenom').value.trim();
+  if (!nom) { toast('Le nom est obligatoire', 'error'); return; }
+
+  const data = {
+    nom, prenom,
+    entreprise:  document.getElementById('f-entreprise').value.trim(),
+    adresse:     document.getElementById('f-adresse').value.trim(),
+    codePostal:  document.getElementById('f-cp').value.trim(),
+    ville:       document.getElementById('f-ville').value.trim(),
+    region:      document.getElementById('f-region').value.trim(),
+    telephone:   document.getElementById('f-tel').value.trim(),
+    email:       document.getElementById('f-email').value.trim(),
+    notes:       document.getElementById('f-notes').value.trim(),
+  };
+
+  const btn = document.getElementById('btn-save');
+  btn.disabled = true;
+  btn.textContent = "Enregistrement…";
+
+  let res;
+  if (editingId) {
+    res = await api('update', { id: editingId, data });
+  } else {
+    res = await api('create', { data });
+  }
+
+  if (res && res.success) {
+    toast(editingId ? 'Client modifié ✓' : 'Client ajouté ✓', 'success');
+    await loadClients();
+    showView('list');
+  } else {
+    toast('Erreur : ' + (res?.error || 'inconnue'), 'error');
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = `<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20,6 9,17 4,12"/></svg> Enregistrer`;
+}
+
+function editCurrentClient() {
+  if (currentClient) showView('form', currentClient.id);
+}
+
+async function deleteCurrentClient() {
+  if (!currentClient) return;
+  if (!confirm(`Supprimer ${currentClient.prenom} ${currentClient.nom} ? Cette action est irréversible.`)) return;
+
+  const res = await api('delete', { id: currentClient.id });
+  if (res && res.success) {
+    toast('Client supprimé', 'success');
+    await loadClients();
+    showView('list');
+  } else {
+    toast('Erreur lors de la suppression', 'error');
+  }
+}
+
+// ─── API ──────────────────────────────────────────────────
+async function api(action, extra = {}, pwd = null) {
+  try {
+    const body = { action, password: pwd || password, ...extra };
+    const res = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify(body)
+    });
+    return await res.json();
+  } catch (e) {
+    console.error(e);
+    return { success: false, error: e.message };
+  }
+}
+
+// ─── UTILITAIRES ─────────────────────────────────────────
+function initials(nom, prenom) {
+  return ((prenom?.[0] || '') + (nom?.[0] || '')).toUpperCase() || '?';
+}
+
+function toast(msg, type = '') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show' + (type ? ' ' + type : '');
+  setTimeout(() => el.className = 'toast', 3000);
+}
+
+// ─── INIT ─────────────────────────────────────────────────
+// On charge les clients après login (géré dans handleLogin)
+</script>
+</body>
+</html>
