@@ -835,7 +835,7 @@
 <script>
 // ─── CONFIG ─────────────────────────────────────────────
 // ⚠️  Remplace cette URL par l'URL de ton Google Apps Script
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzWo-rHK_f7rMFCulSPBYYDM3CuTo6Sc2F-u4F1HtfmnvcetOJ1n8m2nr7MAvxQ3Ki1/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/REMPLACE_PAR_TON_URL/exec";
 
 // ─── ÉTAT ────────────────────────────────────────────────
 let password = "";
@@ -892,7 +892,7 @@ function showView(view, data) {
   if (view === 'list') {
     document.getElementById('view-list').style.display = 'block';
     document.getElementById('nav-list').classList.add('active');
-    renderTable();
+    loadClients();
   } else if (view === 'detail') {
     document.getElementById('view-detail').style.display = 'block';
     renderDetail(data);
