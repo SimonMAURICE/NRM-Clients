@@ -821,8 +821,8 @@
           <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3,6 5,6 21,6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
           Supprimer
         </button>
-        <button class="btn btn-secondary" id="btn-edit" onclick="editCurrentClient()">
-          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        <button class="btn btn-secondary" id="btn-edit" onclick="editCurrentClient()" style="display:inline-flex;align-items:center;gap:8px">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
           Modifier
         </button>
       </div>
@@ -1026,7 +1026,15 @@ function renderTable() {
   }
 
   empty.style.display = 'none';
-  tbody.innerHTML = filtered.map(c => `
+  tbody.innerHTML = filtered.map(c => {
+    // Récupère le contact principal
+    let contacts = [];
+    try { contacts = c.contacts ? JSON.parse(c.contacts) : []; } catch(e) {}
+    const principal = contacts[0] || {};
+    const tel   = principal.tel   || '';
+    const email = principal.email || '';
+
+    return `
     <tr onclick="showView('detail', '${c.id}')">
       <td>
         <div class="client-name-cell">
@@ -1037,11 +1045,11 @@ function renderTable() {
       <td>${c.entreprise || '<span style="color:var(--muted)">—</span>'}</td>
       <td>${c.ville || '<span style="color:var(--muted)">—</span>'}</td>
       <td>${c.region || '<span style="color:var(--muted)">—</span>'}</td>
-      <td>${c.telephone ? `<a href="tel:${c.telephone}" onclick="event.stopPropagation()">${c.telephone}</a>` : '<span style="color:var(--muted)">—</span>'}</td>
-      <td>${c.email ? `<a href="mailto:${c.email}" onclick="event.stopPropagation()">${c.email}</a>` : '<span style="color:var(--muted)">—</span>'}</td>
+      <td>${tel ? `<a href="tel:${tel}" onclick="event.stopPropagation()">${tel}</a>` : '<span style="color:var(--muted)">—</span>'}</td>
+      <td>${email ? `<a href="mailto:${email}" onclick="event.stopPropagation()">${email}</a>` : '<span style="color:var(--muted)">—</span>'}</td>
       <td>${c.numeroCap || '<span style="color:var(--muted)">—</span>'}</td>
-    </tr>
-  `).join('');
+    </tr>`;
+  }).join('');
 }
 
 function updateRegionFilter() {
