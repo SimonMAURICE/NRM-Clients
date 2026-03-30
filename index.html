@@ -509,6 +509,92 @@
 
     .form-group textarea { resize: vertical; min-height: 100px; }
 
+    /* ── CONTACTS MULTIPLES ────────────────────────────── */
+    .contact-block {
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 12px;
+      background: var(--bg);
+    }
+
+    .contact-block-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .contact-block-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: .5px;
+    }
+
+    .btn-remove-contact {
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 4px 6px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      transition: all .2s;
+      font-family: inherit;
+      font-size: 12px;
+      gap: 4px;
+    }
+
+    .btn-remove-contact:hover { color: var(--danger); background: #fdf0ef; }
+
+    .btn-add-contact {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--accent);
+      background: var(--accent-l);
+      border: 1.5px dashed var(--accent);
+      border-radius: var(--radius);
+      padding: 11px 16px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      width: 100%;
+      justify-content: center;
+      font-family: inherit;
+      transition: all .2s;
+    }
+
+    .btn-add-contact:hover { background: #d4e6da; }
+
+    .contact-detail-block {
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .contact-detail-block:last-child { border-bottom: none; }
+
+    .contact-detail-name {
+      font-weight: 600;
+      font-size: 14px;
+      margin-bottom: 6px;
+    }
+
+    .contact-detail-line {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .contact-detail-line a { color: var(--accent); text-decoration: none; }
+    .contact-detail-line a:hover { text-decoration: underline; }
+
     .form-actions {
       display: flex;
       gap: 12px;
@@ -705,27 +791,10 @@
           </div>
         </div>
 
-        <!-- Contact -->
+        <!-- Contacts -->
         <div class="card">
-          <div class="card-title">Contact</div>
-          <div class="info-row">
-            <div class="info-icon">
-              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13 19.79 19.79 0 0 1 1.61 4.42 2 2 0 0 1 3.58 2.25h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21.73 16.92z"/></svg>
-            </div>
-            <div>
-              <div class="info-label">Téléphone</div>
-              <div class="info-value" id="d-tel"></div>
-            </div>
-          </div>
-          <div class="info-row">
-            <div class="info-icon">
-              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-            </div>
-            <div>
-              <div class="info-label">Email</div>
-              <div class="info-value" id="d-email"></div>
-            </div>
-          </div>
+          <div class="card-title">Contacts</div>
+          <div id="d-contacts"></div>
         </div>
 
         <!-- Notes -->
@@ -801,14 +870,6 @@
             <input type="text" id="f-region" placeholder="Île-de-France"/>
           </div>
           <div class="form-group">
-            <label>Téléphone</label>
-            <input type="tel" id="f-tel" placeholder="06 00 00 00 00"/>
-          </div>
-          <div class="form-group">
-            <label>Email</label>
-            <input type="email" id="f-email" placeholder="jean@exemple.fr"/>
-          </div>
-          <div class="form-group">
             <label>Numéro CAP</label>
             <input type="text" id="f-cap" placeholder="Ex: 12345"/>
           </div>
@@ -816,6 +877,16 @@
             <label>Notes</label>
             <textarea id="f-notes" placeholder="Informations complémentaires…"></textarea>
           </div>
+        </div>
+
+        <!-- Section contacts multiples -->
+        <div style="margin-top:20px">
+          <div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px">Contacts</div>
+          <div id="contacts-container"></div>
+          <button class="btn-add-contact" onclick="addContactBlock()">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Ajouter un contact
+          </button>
         </div>
 
         <div class="form-actions">
@@ -840,7 +911,7 @@
 <script>
 // ─── CONFIG ─────────────────────────────────────────────
 // ⚠️  Remplace cette URL par l'URL de ton Google Apps Script
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyUCaJ8CpNyIxlJ71Wq34jm0tvHw0NxkCZQBh-ISCEpFAmlhK4OYR6doM5_UxjIMFkO/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxf_9RfJRZlE01KHtPxX8wtNd03V8FNZHOiCV-DHMXyYAU-y7HtWtcdoPE7AbedwduG/exec";
 
 // ─── ÉTAT ────────────────────────────────────────────────
 let password = "";
@@ -995,13 +1066,28 @@ function renderDetail(id) {
   document.getElementById('d-adresse').textContent = adresse || '—';
   document.getElementById('d-region').textContent = c.region || '—';
 
-  const telEl = document.getElementById('d-tel');
-  telEl.innerHTML = c.telephone
-    ? `<a href="tel:${c.telephone}">${c.telephone}</a>` : '—';
+  // Contacts multiples
+  const contactsEl = document.getElementById('d-contacts');
+  let contacts = [];
+  try { contacts = c.contacts ? JSON.parse(c.contacts) : []; } catch(e) {}
 
-  const emailEl = document.getElementById('d-email');
-  emailEl.innerHTML = c.email
-    ? `<a href="mailto:${c.email}">${c.email}</a>` : '—';
+  if (!contacts.length) {
+    contactsEl.innerHTML = '<div style="color:var(--muted);font-size:14px;font-style:italic">Aucun contact renseigné</div>';
+  } else {
+    contactsEl.innerHTML = contacts.map((ct, i) => `
+      <div class="contact-detail-block">
+        <div class="contact-detail-name">${ct.prenom || ''} ${ct.nom || ''}${i === 0 ? ' <span style="font-size:11px;color:var(--accent);font-weight:400">(principal)</span>' : ''}</div>
+        ${ct.tel ? `<div class="contact-detail-line">
+          <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13 19.79 19.79 0 0 1 1.61 4.42 2 2 0 0 1 3.58 2.25h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21.73 16.92z"/></svg>
+          <a href="tel:${ct.tel}">${ct.tel}</a>
+        </div>` : ''}
+        ${ct.email ? `<div class="contact-detail-line">
+          <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          <a href="mailto:${ct.email}">${ct.email}</a>
+        </div>` : ''}
+      </div>
+    `).join('');
+  }
 
   const notesEl = document.getElementById('d-notes');
   notesEl.textContent = c.notes || 'Aucune note';
@@ -1054,29 +1140,83 @@ async function initMap(adresse) {
 }
 
 // ─── FORMULAIRE ──────────────────────────────────────────
+let contactCount = 0;
+
+function addContactBlock(data = {}) {
+  contactCount++;
+  const idx = contactCount;
+  const isFirst = document.getElementById('contacts-container').children.length === 0;
+
+  const block = document.createElement('div');
+  block.className = 'contact-block';
+  block.dataset.idx = idx;
+  block.innerHTML = `
+    <div class="contact-block-header">
+      <div class="contact-block-title">${isFirst ? 'Contact principal' : 'Contact ' + idx}</div>
+      ${!isFirst ? `<button class="btn-remove-contact" onclick="removeContactBlock(this)">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        Supprimer
+      </button>` : ''}
+    </div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Prénom</label>
+        <input type="text" class="c-prenom" placeholder="Jean" value="${data.prenom || ''}"/>
+      </div>
+      <div class="form-group">
+        <label>Nom</label>
+        <input type="text" class="c-nom" placeholder="Dupont" value="${data.nom || ''}"/>
+      </div>
+      <div class="form-group">
+        <label>Téléphone</label>
+        <input type="tel" class="c-tel" placeholder="06 00 00 00 00" value="${data.tel || ''}"/>
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" class="c-email" placeholder="jean@exemple.fr" value="${data.email || ''}"/>
+      </div>
+    </div>
+  `;
+  document.getElementById('contacts-container').appendChild(block);
+}
+
+function removeContactBlock(btn) {
+  btn.closest('.contact-block').remove();
+}
+
 function renderForm(id) {
   editingId = id || null;
+  contactCount = 0;
   document.getElementById('form-title').textContent = id ? 'Modifier le client' : 'Nouveau client';
 
-  const fields = ['nom','prenom','adresse','cp','ville','region','tel','email','cap','notes'];
+  const fields = ['nom','prenom','adresse','cp','ville','region','cap','notes'];
   fields.forEach(f => document.getElementById('f-' + f).value = '');
   document.getElementById('f-entreprise').value = '';
+  document.getElementById('contacts-container').innerHTML = '';
 
   if (id) {
     const c = clients.find(x => x.id === id);
     if (c) {
-      document.getElementById('f-nom').value       = c.nom || '';
-      document.getElementById('f-prenom').value    = c.prenom || '';
-      document.getElementById('f-entreprise').value= c.entreprise || '';
-      document.getElementById('f-adresse').value   = c.adresse || '';
-      document.getElementById('f-cp').value        = c.codePostal || '';
-      document.getElementById('f-ville').value     = c.ville || '';
-      document.getElementById('f-region').value    = c.region || '';
-      document.getElementById('f-tel').value       = c.telephone || '';
-      document.getElementById('f-email').value     = c.email || '';
-      document.getElementById('f-cap').value       = c.numeroCap || '';
-      document.getElementById('f-notes').value     = c.notes || '';
+      document.getElementById('f-nom').value        = c.nom || '';
+      document.getElementById('f-prenom').value     = c.prenom || '';
+      document.getElementById('f-entreprise').value = c.entreprise || '';
+      document.getElementById('f-adresse').value    = c.adresse || '';
+      document.getElementById('f-cp').value         = c.codePostal || '';
+      document.getElementById('f-ville').value      = c.ville || '';
+      document.getElementById('f-region').value     = c.region || '';
+      document.getElementById('f-cap').value        = c.numeroCap || '';
+      document.getElementById('f-notes').value      = c.notes || '';
+
+      let contacts = [];
+      try { contacts = c.contacts ? JSON.parse(c.contacts) : []; } catch(e) {}
+      if (contacts.length) {
+        contacts.forEach(ct => addContactBlock(ct));
+      } else {
+        addContactBlock();
+      }
     }
+  } else {
+    addContactBlock(); // Un contact vide par défaut
   }
 }
 
@@ -1085,17 +1225,25 @@ async function saveClient() {
   const prenom = document.getElementById('f-prenom').value.trim();
   if (!nom) { toast('Le nom est obligatoire', 'error'); return; }
 
+  // Récupère tous les contacts
+  const contactBlocks = document.querySelectorAll('#contacts-container .contact-block');
+  const contacts = Array.from(contactBlocks).map(block => ({
+    prenom: block.querySelector('.c-prenom').value.trim(),
+    nom:    block.querySelector('.c-nom').value.trim(),
+    tel:    block.querySelector('.c-tel').value.trim(),
+    email:  block.querySelector('.c-email').value.trim(),
+  })).filter(ct => ct.nom || ct.prenom || ct.tel || ct.email);
+
   const data = {
     nom, prenom,
-    entreprise:  document.getElementById('f-entreprise').value.trim(),
-    adresse:     document.getElementById('f-adresse').value.trim(),
-    codePostal:  document.getElementById('f-cp').value.trim(),
-    ville:       document.getElementById('f-ville').value.trim(),
-    region:      document.getElementById('f-region').value.trim(),
-    telephone:   document.getElementById('f-tel').value.trim(),
-    email:       document.getElementById('f-email').value.trim(),
-    numeroCap:   document.getElementById('f-cap').value.trim(),
-    notes:       document.getElementById('f-notes').value.trim(),
+    entreprise: document.getElementById('f-entreprise').value.trim(),
+    adresse:    document.getElementById('f-adresse').value.trim(),
+    codePostal: document.getElementById('f-cp').value.trim(),
+    ville:      document.getElementById('f-ville').value.trim(),
+    region:     document.getElementById('f-region').value.trim(),
+    numeroCap:  document.getElementById('f-cap').value.trim(),
+    notes:      document.getElementById('f-notes').value.trim(),
+    contacts:   JSON.stringify(contacts),
   };
 
   const btn = document.getElementById('btn-save');
