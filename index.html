@@ -649,6 +649,7 @@
               <th>Région</th>
               <th>Téléphone</th>
               <th>Email</th>
+              <th>N° CAP</th>
             </tr>
           </thead>
           <tbody id="table-body"></tbody>
@@ -807,6 +808,10 @@
             <label>Email</label>
             <input type="email" id="f-email" placeholder="jean@exemple.fr"/>
           </div>
+          <div class="form-group">
+            <label>Numéro CAP</label>
+            <input type="text" id="f-cap" placeholder="Ex: 12345"/>
+          </div>
           <div class="form-group full">
             <label>Notes</label>
             <textarea id="f-notes" placeholder="Informations complémentaires…"></textarea>
@@ -835,8 +840,8 @@
 <script>
 // ─── CONFIG ─────────────────────────────────────────────
 // ⚠️  Remplace cette URL par l'URL de ton Google Apps Script
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzWo-rHK_f7rMFCulSPBYYDM3CuTo6Sc2F-u4F1HtfmnvcetOJ1n8m2nr7MAvxQ3Ki1/exec";
-  
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/REMPLACE_PAR_TON_URL/exec";
+
 // ─── ÉTAT ────────────────────────────────────────────────
 let password = "";
 let clients = [];
@@ -963,6 +968,7 @@ function renderTable() {
       <td>${c.region || '<span style="color:var(--muted)">—</span>'}</td>
       <td>${c.telephone ? `<a href="tel:${c.telephone}" onclick="event.stopPropagation()">${c.telephone}</a>` : '<span style="color:var(--muted)">—</span>'}</td>
       <td>${c.email ? `<a href="mailto:${c.email}" onclick="event.stopPropagation()">${c.email}</a>` : '<span style="color:var(--muted)">—</span>'}</td>
+      <td>${c.numeroCap || '<span style="color:var(--muted)">—</span>'}</td>
     </tr>
   `).join('');
 }
@@ -1052,7 +1058,7 @@ function renderForm(id) {
   editingId = id || null;
   document.getElementById('form-title').textContent = id ? 'Modifier le client' : 'Nouveau client';
 
-  const fields = ['nom','prenom','adresse','cp','ville','region','tel','email','notes'];
+  const fields = ['nom','prenom','adresse','cp','ville','region','tel','email','cap','notes'];
   fields.forEach(f => document.getElementById('f-' + f).value = '');
   document.getElementById('f-entreprise').value = '';
 
@@ -1068,6 +1074,7 @@ function renderForm(id) {
       document.getElementById('f-region').value    = c.region || '';
       document.getElementById('f-tel').value       = c.telephone || '';
       document.getElementById('f-email').value     = c.email || '';
+      document.getElementById('f-cap').value       = c.numeroCap || '';
       document.getElementById('f-notes').value     = c.notes || '';
     }
   }
@@ -1087,6 +1094,7 @@ async function saveClient() {
     region:      document.getElementById('f-region').value.trim(),
     telephone:   document.getElementById('f-tel').value.trim(),
     email:       document.getElementById('f-email').value.trim(),
+    numeroCap:   document.getElementById('f-cap').value.trim(),
     notes:       document.getElementById('f-notes').value.trim(),
   };
 
