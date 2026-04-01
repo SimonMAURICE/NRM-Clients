@@ -682,6 +682,10 @@
         <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
         Tous les clients
       </a>
+      <a href="#" onclick="showView('map')" id="nav-map">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="1,6 1,22 8,18 16,22 23,18 23,2 16,6 8,2"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+        Carte clients
+      </a>
       <a href="#" onclick="showView('form', null)" id="nav-add">
         <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
         Ajouter un client
@@ -899,6 +903,27 @@
       </div>
     </div>
 
+    <!-- ── CARTE GLOBALE ── -->
+    <div id="view-map" style="display:none">
+      <div class="page-header">
+        <div>
+          <h1>Carte clients</h1>
+          <div class="count" id="map-status">Chargement des positions…</div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center">
+          <div style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)">
+            <div style="width:12px;height:12px;border-radius:50%;background:#2d5a3d;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.3)"></div> Client
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)">
+            <div style="width:12px;height:12px;border-radius:50%;background:#e67e22;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.3)"></div> Ma position
+          </div>
+        </div>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:var(--shadow)">
+        <div id="global-map" style="height:calc(100vh - 200px);min-height:500px"></div>
+      </div>
+    </div>
+
   </div><!-- .main -->
 </div><!-- #page-app -->
 
@@ -911,7 +936,7 @@
 <script>
 // ─── CONFIG ─────────────────────────────────────────────
 // ⚠️  Remplace cette URL par l'URL de ton Google Apps Script
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxf_9RfJRZlE01KHtPxX8wtNd03V8FNZHOiCV-DHMXyYAU-y7HtWtcdoPE7AbedwduG/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/REMPLACE_PAR_TON_URL/exec";
 
 // ─── ÉTAT ────────────────────────────────────────────────
 let password = "";
@@ -960,7 +985,7 @@ function logout() {
 
 // ─── NAVIGATION ──────────────────────────────────────────
 function showView(view, data) {
-  ['list','detail','form'].forEach(v => {
+  ['list','detail','form','map'].forEach(v => {
     document.getElementById('view-' + v).style.display = 'none';
   });
   document.querySelectorAll('.sidebar nav a').forEach(a => a.classList.remove('active'));
@@ -976,6 +1001,10 @@ function showView(view, data) {
     document.getElementById('view-form').style.display = 'block';
     document.getElementById('nav-add').classList.add('active');
     renderForm(data);
+  } else if (view === 'map') {
+    document.getElementById('view-map').style.display = 'block';
+    document.getElementById('nav-map').classList.add('active');
+    initGlobalMap();
   }
 
   return false;
@@ -1293,6 +1322,162 @@ async function deleteCurrentClient() {
   } else {
     toast('Erreur lors de la suppression', 'error');
   }
+}
+
+// ─── CARTE GLOBALE ───────────────────────────────────────
+let globalMap = null;
+let globalMapInitialized = false;
+
+async function initGlobalMap() {
+  // Si la carte existe déjà, on la rafraîchit juste
+  if (globalMap) {
+    globalMap.remove();
+    globalMap = null;
+    globalMapInitialized = false;
+  }
+
+  // Initialise la carte centrée sur la France
+  globalMap = L.map('global-map').setView([46.8, 2.3], 6);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap'
+  }).addTo(globalMap);
+
+  // Icône client — rond vert bien visible
+  const clientIcon = (nom, prenom) => L.divIcon({
+    className: '',
+    html: `<div style="
+      width:36px;height:36px;
+      background:#2d5a3d;
+      border:3px solid #fff;
+      border-radius:50%;
+      box-shadow:0 2px 8px rgba(0,0,0,.35);
+      display:flex;align-items:center;justify-content:center;
+      color:#fff;font-size:12px;font-weight:700;
+      font-family:'DM Sans',sans-serif;
+      cursor:pointer;
+    ">${initials(nom, prenom)}</div>`,
+    iconSize: [36, 36],
+    iconAnchor: [18, 18],
+    popupAnchor: [0, -20]
+  });
+
+  // Icône position actuelle — rond orange
+  const myIcon = L.divIcon({
+    className: '',
+    html: `<div style="
+      width:20px;height:20px;
+      background:#e67e22;
+      border:3px solid #fff;
+      border-radius:50%;
+      box-shadow:0 2px 8px rgba(0,0,0,.4);
+    "></div>
+    <div style="
+      width:40px;height:40px;
+      background:rgba(230,126,34,.2);
+      border-radius:50%;
+      position:absolute;
+      top:-10px;left:-10px;
+      animation:pulse 2s infinite;
+    "></div>`,
+    iconSize: [20, 20],
+    iconAnchor: [10, 10],
+    popupAnchor: [0, -15]
+  });
+
+  // Ajoute le CSS de l'animation pulse
+  if (!document.getElementById('pulse-style')) {
+    const style = document.createElement('style');
+    style.id = 'pulse-style';
+    style.textContent = `@keyframes pulse {
+      0% { transform:scale(1); opacity:.6; }
+      50% { transform:scale(1.4); opacity:.2; }
+      100% { transform:scale(1); opacity:.6; }
+    }`;
+    document.head.appendChild(style);
+  }
+
+  // ── Géolocalisation de l'appareil ──
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        const { latitude: lat, longitude: lng } = pos.coords;
+        L.marker([lat, lng], { icon: myIcon })
+          .addTo(globalMap)
+          .bindPopup('<b style="color:#e67e22">📍 Ma position</b>')
+          .openPopup();
+      },
+      () => {
+        document.getElementById('map-status').textContent =
+          'Position non disponible — autorise la géolocalisation dans ton navigateur';
+      }
+    );
+  }
+
+  // ── Place les clients sur la carte ──
+  // Charge les clients si pas encore chargés
+  if (!clients.length) {
+    const res = await api('getAll');
+    if (res && res.success) clients = res.clients || [];
+  }
+
+  const clientsAvecAdresse = clients.filter(c => c.adresse || c.ville);
+  let placés = 0;
+  let erreurs = 0;
+
+  document.getElementById('map-status').textContent =
+    `Géolocalisation de ${clientsAvecAdresse.length} clients…`;
+
+  // Géocode les adresses une par une (limite Nominatim : 1 req/sec)
+  for (const c of clientsAvecAdresse) {
+    const adresse = [c.adresse, c.codePostal, c.ville].filter(Boolean).join(', ');
+    try {
+      await new Promise(r => setTimeout(r, 1100)); // Respect limite Nominatim
+      const encoded = encodeURIComponent(adresse + ', France');
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encoded}&limit=1`);
+      const data = await res.json();
+
+      if (data.length) {
+        const lat = parseFloat(data[0].lat);
+        const lon = parseFloat(data[0].lon);
+
+        // Récupère le contact principal pour le popup
+        let contacts = [];
+        try { contacts = c.contacts ? JSON.parse(c.contacts) : []; } catch(e) {}
+        const principal = contacts[0] || {};
+        const telLine  = principal.tel   ? `<br><a href="tel:${principal.tel}" style="color:#2d5a3d">${principal.tel}</a>` : '';
+        const emailLine = principal.email ? `<br><a href="mailto:${principal.email}" style="color:#2d5a3d">${principal.email}</a>` : '';
+
+        L.marker([lat, lon], { icon: clientIcon(c.nom, c.prenom) })
+          .addTo(globalMap)
+          .bindPopup(`
+            <div style="font-family:'DM Sans',sans-serif;min-width:160px">
+              <div style="font-weight:700;font-size:14px;margin-bottom:4px">${c.prenom || ''} ${c.nom || ''}</div>
+              ${c.entreprise ? `<div style="color:#8a8880;font-size:12px;margin-bottom:6px">${c.entreprise}</div>` : ''}
+              <div style="font-size:12px;color:#555">${adresse}</div>
+              ${telLine}${emailLine}
+              <div style="margin-top:8px">
+                <a onclick="showView('detail','${c.id}');return false;" href="#"
+                   style="font-size:12px;color:#2d5a3d;font-weight:600">
+                  Voir la fiche →
+                </a>
+              </div>
+            </div>
+          `);
+        placés++;
+        document.getElementById('map-status').textContent =
+          `${placés} client${placés > 1 ? 's' : ''} placé${placés > 1 ? 's' : ''} sur la carte…`;
+      } else {
+        erreurs++;
+      }
+    } catch(e) {
+      erreurs++;
+    }
+  }
+
+  // Message final
+  let msg = `${placés} client${placés > 1 ? 's' : ''} sur la carte`;
+  if (erreurs) msg += ` · ${erreurs} adresse${erreurs > 1 ? 's' : ''} introuvable${erreurs > 1 ? 's' : ''}`;
+  document.getElementById('map-status').textContent = msg;
 }
 
 // ─── API ──────────────────────────────────────────────────
