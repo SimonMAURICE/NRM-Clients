@@ -666,11 +666,6 @@
         padding: 16px 14px 90px;
       }
 
-      /* Barre de navigation mobile en bas */
-      .mobile-nav {
-        display: flex !important;
-      }
-
       /* Adaptations des cartes */
       .detail-grid { grid-template-columns: 1fr; gap: 12px; }
       .form-grid { grid-template-columns: 1fr; gap: 12px; }
@@ -710,7 +705,7 @@
   <!-- Barre de navigation mobile -->
   <style>
     .mobile-nav {
-      display: none;
+      display: none !important;
       position: fixed;
       bottom: 0; left: 0; right: 0;
       height: 70px;
@@ -1048,7 +1043,7 @@
 <script>
 // ─── CONFIG ─────────────────────────────────────────────
 // ⚠️  Remplace cette URL par l'URL de ton Google Apps Script
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxf_9RfJRZlE01KHtPxX8wtNd03V8FNZHOiCV-DHMXyYAU-y7HtWtcdoPE7AbedwduG/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/REMPLACE_PAR_TON_URL/exec";
 
 // ─── ÉTAT ────────────────────────────────────────────────
 let password = "";
