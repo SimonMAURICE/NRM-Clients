@@ -644,14 +644,106 @@
 
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ── RESPONSIF BASIQUE ─────────────────────────────── */
-    @media (max-width: 900px) {
-      .sidebar { display: none; }
-      .main { margin-left: 0; padding: 20px; }
+    /* ── RESPONSIF COMPLET ─────────────────────────────── */
+
+    /* Tablette (< 1024px) — sidebar réduite mais texte visible */
+    @media (max-width: 1024px) {
+      .sidebar {
+        width: 180px;
+        padding: 20px 14px;
+      }
+      .sidebar .brand { font-size: 18px; }
+      .sidebar nav a { font-size: 13px; padding: 10px 10px; }
+      .main { margin-left: 180px; padding: 24px; }
       .detail-grid { grid-template-columns: 1fr; }
-      .form-grid { grid-template-columns: 1fr; }
-      .form-group.full { grid-column: 1; }
     }
+
+    /* Mobile (< 700px) — bottom nav */
+    @media (max-width: 700px) {
+      .sidebar { display: none; }
+      .main {
+        margin-left: 0;
+        padding: 16px 14px 90px;
+      }
+
+      /* Barre de navigation mobile en bas */
+      .mobile-nav {
+        display: flex !important;
+      }
+
+      /* Adaptations des cartes */
+      .detail-grid { grid-template-columns: 1fr; gap: 12px; }
+      .form-grid { grid-template-columns: 1fr; gap: 12px; }
+      .form-group.full { grid-column: 1; }
+
+      /* Header de page */
+      .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+      .page-header .btn { width: 100%; justify-content: center; }
+
+      /* Barre de recherche */
+      .search-bar { flex-direction: column; }
+      .search-bar input,
+      .search-bar select { width: 100%; }
+
+      /* Tableau → version compacte */
+      table thead th:nth-child(n+4) { display: none; }
+      table tbody td:nth-child(n+4) { display: none; }
+
+      /* Carte */
+      #map { height: 220px; }
+      #global-map { height: calc(100vh - 160px) !important; min-height: 400px !important; }
+
+      /* Form actions */
+      .form-actions { flex-direction: column-reverse; }
+      .form-actions .btn { width: 100%; justify-content: center; }
+
+      /* Cards */
+      .card { padding: 16px; }
+    }
+  </style>
+
+  <!-- Barre de navigation mobile -->
+  <style>
+    .mobile-nav {
+      display: none;
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      height: 70px;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      z-index: 200;
+      padding: 0 8px;
+      padding-bottom: env(safe-area-inset-bottom);
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+    }
+
+    .mobile-nav a {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 10px;
+      font-weight: 500;
+      padding: 8px 4px;
+      border-radius: 10px;
+      transition: all .2s;
+    }
+
+    .mobile-nav a.active {
+      color: var(--accent);
+      background: var(--accent-l);
+    }
+
+    .mobile-nav a svg { flex-shrink: 0; }
   </style>
 </head>
 <body>
@@ -927,6 +1019,26 @@
   </div><!-- .main -->
 </div><!-- #page-app -->
 
+<!-- Barre navigation mobile -->
+<nav class="mobile-nav" id="mobile-nav" style="display:none">
+  <a href="#" onclick="showView('list')" id="mob-list">
+    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+    Clients
+  </a>
+  <a href="#" onclick="showView('map')" id="mob-map">
+    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="1,6 1,22 8,18 16,22 23,18 23,2 16,6 8,2"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+    Carte
+  </a>
+  <a href="#" onclick="showView('form', null)" id="mob-add">
+    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+    Ajouter
+  </a>
+  <a href="#" onclick="logout()">
+    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16,17 21,12 16,7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+    Quitter
+  </a>
+</nav>
+
 <!-- Toast -->
 <div class="toast" id="toast"></div>
 
@@ -936,7 +1048,7 @@
 <script>
 // ─── CONFIG ─────────────────────────────────────────────
 // ⚠️  Remplace cette URL par l'URL de ton Google Apps Script
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxf_9RfJRZlE01KHtPxX8wtNd03V8FNZHOiCV-DHMXyYAU-y7HtWtcdoPE7AbedwduG/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/REMPLACE_PAR_TON_URL/exec";
 
 // ─── ÉTAT ────────────────────────────────────────────────
 let password = "";
@@ -966,6 +1078,10 @@ async function handleLogin() {
     clients = res.clients || [];
     document.getElementById('page-login').style.display = 'none';
     document.getElementById('page-app').style.display = 'block';
+    // Affiche la barre mobile si petit écran
+    if (window.innerWidth <= 700) {
+      document.getElementById('mobile-nav').style.display = 'flex';
+    }
     showView('list');
   } else {
     document.getElementById('login-error').textContent = "Mot de passe incorrect.";
@@ -979,6 +1095,7 @@ function logout() {
   clients = [];
   document.getElementById('page-login').style.display = 'flex';
   document.getElementById('page-app').style.display = 'none';
+  document.getElementById('mobile-nav').style.display = 'none';
   document.getElementById('login-input').value = '';
   document.getElementById('login-error').textContent = '';
 }
@@ -988,26 +1105,41 @@ function showView(view, data) {
   ['list','detail','form','map'].forEach(v => {
     document.getElementById('view-' + v).style.display = 'none';
   });
-  document.querySelectorAll('.sidebar nav a').forEach(a => a.classList.remove('active'));
+  document.querySelectorAll('.sidebar nav a, .mobile-nav a').forEach(a => a.classList.remove('active'));
 
   if (view === 'list') {
     document.getElementById('view-list').style.display = 'block';
     document.getElementById('nav-list').classList.add('active');
+    document.getElementById('mob-list').classList.add('active');
     loadClients();
   } else if (view === 'detail') {
     document.getElementById('view-detail').style.display = 'block';
-    renderDetail(data);
   } else if (view === 'form') {
     document.getElementById('view-form').style.display = 'block';
     document.getElementById('nav-add').classList.add('active');
+    document.getElementById('mob-add').classList.add('active');
     renderForm(data);
   } else if (view === 'map') {
     document.getElementById('view-map').style.display = 'block';
     document.getElementById('nav-map').classList.add('active');
+    document.getElementById('mob-map').classList.add('active');
     initGlobalMap();
   }
 
+  // Sur mobile, scroll en haut à chaque changement de vue
+  window.scrollTo(0, 0);
   return false;
+}
+
+// Appel séparé pour renderDetail (pas dans showView car pas de nav active)
+function goToDetail(id) {
+  ['list','detail','form','map'].forEach(v => {
+    document.getElementById('view-' + v).style.display = 'none';
+  });
+  document.querySelectorAll('.sidebar nav a, .mobile-nav a').forEach(a => a.classList.remove('active'));
+  document.getElementById('view-detail').style.display = 'block';
+  renderDetail(id);
+  window.scrollTo(0, 0);
 }
 
 // ─── LISTE ───────────────────────────────────────────────
@@ -1064,7 +1196,7 @@ function renderTable() {
     const email = principal.email || '';
 
     return `
-    <tr onclick="showView('detail', '${c.id}')">
+    <tr onclick="goToDetail('${c.id}')">
       <td>
         <div class="client-name-cell">
           <div class="avatar">${initials(c.nom, c.prenom)}</div>
@@ -1456,7 +1588,7 @@ async function initGlobalMap() {
               <div style="font-size:12px;color:#555">${adresse}</div>
               ${telLine}${emailLine}
               <div style="margin-top:8px">
-                <a onclick="showView('detail','${c.id}');return false;" href="#"
+                <a onclick="goToDetail('${c.id}');return false;" href="#"
                    style="font-size:12px;color:#2d5a3d;font-weight:600">
                   Voir la fiche →
                 </a>
