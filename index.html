@@ -705,7 +705,7 @@
   <!-- Barre de navigation mobile -->
   <style>
     .mobile-nav {
-      display: none !important;
+      display: none;
       position: fixed;
       bottom: 0; left: 0; right: 0;
       height: 70px;
@@ -739,6 +739,13 @@
     }
 
     .mobile-nav a svg { flex-shrink: 0; }
+
+    /* Visible uniquement après connexion sur mobile */
+    @media (max-width: 700px) {
+      body.logged-in .mobile-nav {
+        display: flex;
+      }
+    }
   </style>
 </head>
 <body>
@@ -1073,10 +1080,7 @@ async function handleLogin() {
     clients = res.clients || [];
     document.getElementById('page-login').style.display = 'none';
     document.getElementById('page-app').style.display = 'block';
-    // Affiche la barre mobile si petit écran
-    if (window.innerWidth <= 700) {
-      document.getElementById('mobile-nav').style.display = 'flex';
-    }
+    document.body.classList.add('logged-in');
     showView('list');
   } else {
     document.getElementById('login-error').textContent = "Mot de passe incorrect.";
@@ -1090,7 +1094,7 @@ function logout() {
   clients = [];
   document.getElementById('page-login').style.display = 'flex';
   document.getElementById('page-app').style.display = 'none';
-  document.getElementById('mobile-nav').style.display = 'none';
+  document.body.classList.remove('logged-in');
   document.getElementById('login-input').value = '';
   document.getElementById('login-error').textContent = '';
 }
