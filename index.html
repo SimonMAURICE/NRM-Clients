@@ -1953,14 +1953,18 @@ function escHtml(str) {
 // ─── API ──────────────────────────────────────────────────
 async function api(action, extra = {}, pwd = null) {
   try {
-    // On utilise GET + paramètres URL pour éviter les blocages CORS
     const params = new URLSearchParams();
     params.set('action', action);
     params.set('password', pwd || password);
 
-    // Les données complexes (création/modification) sont sérialisées en JSON
-    if (extra.data)  params.set('data', JSON.stringify(extra.data));
-    if (extra.id)    params.set('id', extra.id);
+    // Transmet tous les paramètres extras
+    Object.entries(extra).forEach(([key, val]) => {
+      if (key === 'data') {
+        params.set('data', JSON.stringify(val));
+      } else {
+        params.set(key, val);
+      }
+    });
 
     const res = await fetch(`${APPS_SCRIPT_URL}?${params.toString()}`, {
       method: 'GET',
