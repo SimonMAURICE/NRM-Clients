@@ -1208,7 +1208,7 @@
 <script>
 // ─── CONFIG ─────────────────────────────────────────────
 // ⚠️  Remplace cette URL par l'URL de ton Google Apps Script
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxXfcGeyMR0SxFLFQ755MoVXtsnhCYZrawtJ_2iIKyC4WQO2IC4sObhAIXB7Vmqrl6e/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwT2jbx9pNj6lfqA8MendtJ9ycvlvKc3IDHL0pRXlVCbqFDyLmVaX51oSAtdCPBE5bq/exec";
 
 // ─── ÉTAT ────────────────────────────────────────────────
 let password = "";
@@ -1799,8 +1799,13 @@ function renderPlanningHeader() {
 
 async function loadEvents() {
   const month = `${planningDate.getFullYear()}-${String(planningDate.getMonth()+1).padStart(2,'0')}`;
-  const res = await api('getEvents', { month });
-  planningEvents = res.success ? res.events : [];
+  const res = await api('getEvents', {});
+  if (res.success) {
+    // Filtrage côté JS — plus fiable que côté serveur
+    planningEvents = res.events.filter(e => String(e.date).startsWith(month));
+  } else {
+    planningEvents = [];
+  }
 }
 
 function renderCalendar() {
