@@ -1303,8 +1303,12 @@ function logout() {
   document.getElementById('page-app').style.display = 'none';
   document.body.classList.remove('logged-in');
   document.getElementById('mobile-nav').style.setProperty('display', 'none', 'important');
-  document.getElementById('login-input').value = '';
+  document.getElementById('login-input').value = localStorage.getItem('crm_pwd') || '';
   document.getElementById('login-error').textContent = '';
+  // Remet le bouton de connexion dans son état initial
+  const btn = document.querySelector('#page-login .btn-primary');
+  btn.textContent = "Se connecter";
+  btn.disabled = false;
 }
 
 // ─── NAVIGATION ──────────────────────────────────────────
