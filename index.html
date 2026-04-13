@@ -1910,7 +1910,8 @@ async function deleteNote(id) {
 }
 
 async function changeMonth(delta) {
-  planningDate.setMonth(planningDate.getMonth() + delta);
+  // Crée une nouvelle date au 1er du mois cible — évite les débordements (ex: 31 jan → fév)
+  planningDate = new Date(planningDate.getFullYear(), planningDate.getMonth() + delta, 1);
   selectedDay = null;
   document.getElementById('day-panel-title').textContent = 'Sélectionne un jour';
   document.getElementById('day-notes-list').innerHTML = '';
