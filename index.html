@@ -1304,7 +1304,7 @@ function showView(view, data) {
 
 // Appel séparé pour renderDetail (pas dans showView car pas de nav active)
 function goToDetail(id) {
-  ['list','detail','form','map'].forEach(v => {
+  ['list','detail','form','map','planning'].forEach(v => {
     document.getElementById('view-' + v).style.display = 'none';
   });
   document.querySelectorAll('.sidebar nav a, .mobile-nav a').forEach(a => a.classList.remove('active'));
@@ -1585,6 +1585,21 @@ async function saveClient() {
     notes:      document.getElementById('f-notes').value.trim(),
     contacts:   JSON.stringify(contacts),
   };
+
+  // Si l'adresse a changé sur un client existant → invalide le cache GPS
+  if (editingId) {
+    const ancien = clients.find(c => c.id === editingId);
+    if (ancien) {
+      const adresseChangee =
+        data.adresse   !== (ancien.adresse   || '') ||
+        data.codePostal !== (ancien.codePostal || '') ||
+        data.ville     !== (ancien.ville     || '');
+      if (adresseChangee) {
+        data.lat = '';
+        data.lng = '';
+      }
+    }
+  }
 
   const btn = document.getElementById('btn-save');
   btn.disabled = true;
