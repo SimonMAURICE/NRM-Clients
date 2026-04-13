@@ -1305,7 +1305,15 @@ function logout() {
   document.getElementById('mobile-nav').style.setProperty('display', 'none', 'important');
   document.getElementById('login-input').value = localStorage.getItem('crm_pwd') || '';
   document.getElementById('login-error').textContent = '';
-  // Remet le bouton de connexion dans son état initial
+  // Remet le mot de passe sauvegardé si existant
+  const saved = localStorage.getItem('crm_pwd');
+  if (saved) {
+    document.getElementById('login-input').value = saved;
+    document.getElementById('remember-me').checked = true;
+  } else {
+    document.getElementById('login-input').value = '';
+    document.getElementById('remember-me').checked = false;
+  }
   const btn = document.querySelector('#page-login .btn-primary');
   btn.textContent = "Se connecter";
   btn.disabled = false;
