@@ -1208,7 +1208,7 @@
 <script>
 // ─── CONFIG ─────────────────────────────────────────────
 // ⚠️  Remplace cette URL par l'URL de ton Google Apps Script
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz3UbmQjubKxjEulBSn2LwIqITBivzNpnhC-TATxFPjR0qJAJ1_0Vj3NLtSJze_hMev/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/REMPLACE_PAR_TON_URL/exec";
 
 // ─── ÉTAT ────────────────────────────────────────────────
 let password = "";
@@ -1622,155 +1622,122 @@ async function deleteCurrentClient() {
 
 // ─── CARTE GLOBALE ───────────────────────────────────────
 let globalMap = null;
-let globalMapInitialized = false;
 
 async function initGlobalMap() {
-  // Si la carte existe déjà, on la rafraîchit juste
-  if (globalMap) {
-    globalMap.remove();
-    globalMap = null;
-    globalMapInitialized = false;
-  }
+  if (globalMap) { globalMap.remove(); globalMap = null; }
 
-  // Initialise la carte centrée sur la France
   globalMap = L.map('global-map').setView([46.8, 2.3], 6);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© OpenStreetMap'
   }).addTo(globalMap);
 
-  // Icône client — rond vert bien visible
+  // Icône client
   const clientIcon = (nom, prenom) => L.divIcon({
     className: '',
-    html: `<div style="
-      width:36px;height:36px;
-      background:#2d5a3d;
-      border:3px solid #fff;
-      border-radius:50%;
-      box-shadow:0 2px 8px rgba(0,0,0,.35);
-      display:flex;align-items:center;justify-content:center;
-      color:#fff;font-size:12px;font-weight:700;
-      font-family:'DM Sans',sans-serif;
-      cursor:pointer;
-    ">${initials(nom, prenom)}</div>`,
-    iconSize: [36, 36],
-    iconAnchor: [18, 18],
-    popupAnchor: [0, -20]
+    html: `<div style="width:36px;height:36px;background:#2d5a3d;border:3px solid #fff;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer">${initials(nom, prenom)}</div>`,
+    iconSize: [36, 36], iconAnchor: [18, 18], popupAnchor: [0, -20]
   });
 
-  // Icône position actuelle — rond orange
+  // Icône position actuelle
   const myIcon = L.divIcon({
     className: '',
-    html: `<div style="
-      width:20px;height:20px;
-      background:#e67e22;
-      border:3px solid #fff;
-      border-radius:50%;
-      box-shadow:0 2px 8px rgba(0,0,0,.4);
-    "></div>
-    <div style="
-      width:40px;height:40px;
-      background:rgba(230,126,34,.2);
-      border-radius:50%;
-      position:absolute;
-      top:-10px;left:-10px;
-      animation:pulse 2s infinite;
-    "></div>`,
-    iconSize: [20, 20],
-    iconAnchor: [10, 10],
-    popupAnchor: [0, -15]
+    html: `<div style="width:20px;height:20px;background:#e67e22;border:3px solid #fff;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,.4)"></div>
+           <div style="width:40px;height:40px;background:rgba(230,126,34,.2);border-radius:50%;position:absolute;top:-10px;left:-10px;animation:pulse 2s infinite"></div>`,
+    iconSize: [20, 20], iconAnchor: [10, 10], popupAnchor: [0, -15]
   });
 
-  // Ajoute le CSS de l'animation pulse
   if (!document.getElementById('pulse-style')) {
     const style = document.createElement('style');
     style.id = 'pulse-style';
-    style.textContent = `@keyframes pulse {
-      0% { transform:scale(1); opacity:.6; }
-      50% { transform:scale(1.4); opacity:.2; }
-      100% { transform:scale(1); opacity:.6; }
-    }`;
+    style.textContent = `@keyframes pulse{0%{transform:scale(1);opacity:.6}50%{transform:scale(1.4);opacity:.2}100%{transform:scale(1);opacity:.6}}`;
     document.head.appendChild(style);
   }
 
-  // ── Géolocalisation de l'appareil ──
+  // Géolocalisation
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
       pos => {
         const { latitude: lat, longitude: lng } = pos.coords;
-        L.marker([lat, lng], { icon: myIcon })
-          .addTo(globalMap)
-          .bindPopup('<b style="color:#e67e22">📍 Ma position</b>')
-          .openPopup();
+        L.marker([lat, lng], { icon: myIcon }).addTo(globalMap)
+          .bindPopup('<b style="color:#e67e22">📍 Ma position</b>').openPopup();
       },
-      () => {
-        document.getElementById('map-status').textContent =
-          'Position non disponible — autorise la géolocalisation dans ton navigateur';
-      }
+      () => { document.getElementById('map-status').textContent = 'Position non disponible'; }
     );
   }
 
-  // ── Place les clients sur la carte ──
-  // Charge les clients si pas encore chargés
+  // Charge les clients
   if (!clients.length) {
     const res = await api('getAll');
     if (res && res.success) clients = res.clients || [];
   }
 
   const clientsAvecAdresse = clients.filter(c => c.adresse || c.ville);
-  let placés = 0;
-  let erreurs = 0;
+  let placés = 0, nouveaux = 0, erreurs = 0;
+
+  // Sépare ceux qui ont déjà un cache GPS et ceux qui n'en ont pas
+  const avecCache  = clientsAvecAdresse.filter(c => c.lat && c.lng && parseFloat(c.lat) !== 0);
+  const sansCache  = clientsAvecAdresse.filter(c => !c.lat || !c.lng || parseFloat(c.lat) === 0);
 
   document.getElementById('map-status').textContent =
-    `Géolocalisation de ${clientsAvecAdresse.length} clients…`;
+    avecCache.length
+      ? `Chargement de ${avecCache.length} clients depuis le cache, géolocalisation de ${sansCache.length} nouveau${sansCache.length > 1 ? 'x' : ''}…`
+      : `Géolocalisation de ${sansCache.length} clients… (première ouverture, ~${sansCache.length} secondes)`;
 
-  // Géocode les adresses une par une (limite Nominatim : 1 req/sec)
-  for (const c of clientsAvecAdresse) {
+  // ── Clients avec cache → placement instantané ──
+  const placeMarker = (c, lat, lon) => {
+    const adresse = [c.adresse, c.codePostal, c.ville].filter(Boolean).join(', ');
+    let contacts = [];
+    try { contacts = c.contacts ? JSON.parse(c.contacts) : []; } catch(e) {}
+    const p = contacts[0] || {};
+    const telLine   = p.tel   ? `<br><a href="tel:${p.tel}" style="color:#2d5a3d">${p.tel}</a>` : '';
+    const emailLine = p.email ? `<br><a href="mailto:${p.email}" style="color:#2d5a3d">${p.email}</a>` : '';
+    L.marker([lat, lon], { icon: clientIcon(c.nom, c.prenom) })
+      .addTo(globalMap)
+      .bindPopup(`<div style="font-family:'DM Sans',sans-serif;min-width:160px">
+        <div style="font-weight:700;font-size:14px;margin-bottom:4px">${c.prenom || ''} ${c.nom || ''}</div>
+        ${c.entreprise ? `<div style="color:#8a8880;font-size:12px;margin-bottom:6px">${c.entreprise}</div>` : ''}
+        <div style="font-size:12px;color:#555">${adresse}</div>
+        ${telLine}${emailLine}
+        <div style="margin-top:8px"><a onclick="goToDetail('${c.id}');return false;" href="#" style="font-size:12px;color:#2d5a3d;font-weight:600">Voir la fiche →</a></div>
+      </div>`);
+  };
+
+  avecCache.forEach(c => {
+    placeMarker(c, parseFloat(c.lat), parseFloat(c.lng));
+    placés++;
+  });
+
+  if (avecCache.length) {
+    document.getElementById('map-status').textContent =
+      `${placés} client${placés > 1 ? 's' : ''} chargés${sansCache.length ? `, géolocalisation de ${sansCache.length} nouveau${sansCache.length > 1 ? 'x' : ''}…` : ''}`;
+  }
+
+  // ── Clients sans cache → géocodage + sauvegarde ──
+  for (const c of sansCache) {
     const adresse = [c.adresse, c.codePostal, c.ville].filter(Boolean).join(', ');
     try {
       await new Promise(r => setTimeout(r, 1100)); // Respect limite Nominatim
       const encoded = encodeURIComponent(adresse + ', France');
       const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encoded}&limit=1`);
       const data = await res.json();
-
       if (data.length) {
         const lat = parseFloat(data[0].lat);
         const lon = parseFloat(data[0].lon);
-
-        // Récupère le contact principal pour le popup
-        let contacts = [];
-        try { contacts = c.contacts ? JSON.parse(c.contacts) : []; } catch(e) {}
-        const principal = contacts[0] || {};
-        const telLine  = principal.tel   ? `<br><a href="tel:${principal.tel}" style="color:#2d5a3d">${principal.tel}</a>` : '';
-        const emailLine = principal.email ? `<br><a href="mailto:${principal.email}" style="color:#2d5a3d">${principal.email}</a>` : '';
-
-        L.marker([lat, lon], { icon: clientIcon(c.nom, c.prenom) })
-          .addTo(globalMap)
-          .bindPopup(`
-            <div style="font-family:'DM Sans',sans-serif;min-width:160px">
-              <div style="font-weight:700;font-size:14px;margin-bottom:4px">${c.prenom || ''} ${c.nom || ''}</div>
-              ${c.entreprise ? `<div style="color:#8a8880;font-size:12px;margin-bottom:6px">${c.entreprise}</div>` : ''}
-              <div style="font-size:12px;color:#555">${adresse}</div>
-              ${telLine}${emailLine}
-              <div style="margin-top:8px">
-                <a onclick="goToDetail('${c.id}');return false;" href="#"
-                   style="font-size:12px;color:#2d5a3d;font-weight:600">
-                  Voir la fiche →
-                </a>
-              </div>
-            </div>
-          `);
+        placeMarker(c, lat, lon);
         placés++;
+        nouveaux++;
+        // Sauvegarde dans le Sheet pour les prochaines fois
+        api('updateCoords', { id: c.id, lat, lng: lon });
+        // Met à jour le cache local
+        c.lat = lat; c.lng = lon;
         document.getElementById('map-status').textContent =
-          `${placés} client${placés > 1 ? 's' : ''} placé${placés > 1 ? 's' : ''} sur la carte…`;
+          `${placés} client${placés > 1 ? 's' : ''} sur la carte (${nouveaux} géolocalisé${nouveaux > 1 ? 's' : ''})…`;
       } else {
         erreurs++;
       }
-    } catch(e) {
-      erreurs++;
-    }
+    } catch(e) { erreurs++; }
   }
 
-  // Message final
   let msg = `${placés} client${placés > 1 ? 's' : ''} sur la carte`;
   if (erreurs) msg += ` · ${erreurs} adresse${erreurs > 1 ? 's' : ''} introuvable${erreurs > 1 ? 's' : ''}`;
   document.getElementById('map-status').textContent = msg;
