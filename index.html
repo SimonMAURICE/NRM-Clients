@@ -211,18 +211,25 @@
       align-items: center;
       justify-content: space-between;
       margin-bottom: 28px;
+      gap: 16px;
+      flex-wrap: wrap;
     }
 
     .page-header h1 {
       font-family: 'DM Serif Display', serif;
       font-size: 28px;
       font-weight: 400;
+      white-space: nowrap;
     }
 
     .page-header .count {
       font-size: 13px;
       color: var(--muted);
       margin-top: 2px;
+    }
+
+    .page-header .btn {
+      flex-shrink: 0;
     }
 
     /* Barre de recherche & filtres */
