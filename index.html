@@ -866,7 +866,20 @@
   <div class="login-card">
     <div class="logo">◈ ClientBase</div>
     <div class="subtitle">Accès sécurisé à la gestion clients</div>
-    <input type="password" id="login-input" placeholder="Mot de passe" autocomplete="current-password"/>
+    <div style="position:relative;margin-bottom:16px">
+      <input type="password" id="login-input" placeholder="Mot de passe" autocomplete="current-password"
+             style="margin-bottom:0;padding-right:46px"/>
+      <button onclick="togglePasswordVisibility()" id="btn-eye"
+              style="position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--muted);padding:0;display:flex;align-items:center">
+        <svg id="eye-icon" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+        </svg>
+      </button>
+    </div>
+    <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);cursor:pointer;margin-bottom:16px;justify-content:center">
+      <input type="checkbox" id="remember-me" style="width:auto;margin:0;padding:0;letter-spacing:0;text-align:left;border-radius:4px;cursor:pointer"/>
+      Se souvenir de moi
+    </label>
     <div class="error" id="login-error"></div>
     <button class="btn btn-primary" onclick="handleLogin()">Se connecter</button>
   </div>
@@ -1225,6 +1238,27 @@ let editingId = null;
 let leafletMap = null;
 
 // ─── LOGIN ───────────────────────────────────────────────
+// Pré-remplit le mot de passe si "Se souvenir de moi" était coché
+window.addEventListener('DOMContentLoaded', () => {
+  const saved = localStorage.getItem('crm_pwd');
+  if (saved) {
+    document.getElementById('login-input').value = saved;
+    document.getElementById('remember-me').checked = true;
+  }
+});
+
+function togglePasswordVisibility() {
+  const input = document.getElementById('login-input');
+  const icon  = document.getElementById('eye-icon');
+  if (input.type === 'password') {
+    input.type = 'text';
+    icon.innerHTML = `<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>`;
+  } else {
+    input.type = 'password';
+    icon.innerHTML = `<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>`;
+  }
+}
+
 document.getElementById('login-input').addEventListener('keydown', e => {
   if (e.key === 'Enter') handleLogin();
 });
@@ -1243,6 +1277,12 @@ async function handleLogin() {
   if (res && res.success) {
     password = pwd;
     clients = res.clients || [];
+    // Sauvegarde le mot de passe si "Se souvenir de moi" est coché
+    if (document.getElementById('remember-me').checked) {
+      localStorage.setItem('crm_pwd', pwd);
+    } else {
+      localStorage.removeItem('crm_pwd');
+    }
     document.getElementById('page-login').style.display = 'none';
     document.getElementById('page-app').style.display = 'block';
     document.body.classList.add('logged-in');
@@ -1258,6 +1298,7 @@ async function handleLogin() {
 function logout() {
   password = "";
   clients = [];
+  localStorage.removeItem('crm_pwd');
   document.getElementById('page-login').style.display = 'flex';
   document.getElementById('page-app').style.display = 'none';
   document.body.classList.remove('logged-in');
