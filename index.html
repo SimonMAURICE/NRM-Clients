@@ -1298,12 +1298,10 @@ async function handleLogin() {
 function logout() {
   password = "";
   clients = [];
-  localStorage.removeItem('crm_pwd');
   document.getElementById('page-login').style.display = 'flex';
   document.getElementById('page-app').style.display = 'none';
   document.body.classList.remove('logged-in');
   document.getElementById('mobile-nav').style.setProperty('display', 'none', 'important');
-  document.getElementById('login-input').value = localStorage.getItem('crm_pwd') || '';
   document.getElementById('login-error').textContent = '';
   // Remet le mot de passe sauvegardé si existant
   const saved = localStorage.getItem('crm_pwd');
@@ -1314,6 +1312,7 @@ function logout() {
     document.getElementById('login-input').value = '';
     document.getElementById('remember-me').checked = false;
   }
+  // Remet le bouton de connexion dans son état initial
   const btn = document.querySelector('#page-login .btn-primary');
   btn.textContent = "Se connecter";
   btn.disabled = false;
