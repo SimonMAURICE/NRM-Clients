@@ -765,22 +765,24 @@
     /* Tablette (< 1024px) — sidebar réduite mais texte visible */
     @media (max-width: 1024px) {
       .sidebar {
-        width: 180px;
-        padding: 20px 14px;
+        width: 160px;
+        padding: 20px 12px;
       }
-      .sidebar .brand { font-size: 18px; }
-      .sidebar nav a { font-size: 13px; padding: 10px 10px; }
-      .main { margin-left: 180px; padding: 24px; }
+      .sidebar .brand { font-size: 16px; }
+      .sidebar nav a { font-size: 12px; padding: 10px 8px; gap: 7px; }
+      .sidebar .logout { font-size: 12px; }
+      .main { margin-left: 160px; padding: 20px; }
       .detail-grid { grid-template-columns: 1fr; }
+
+      /* Tableau scrollable horizontalement */
+      .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      table { min-width: 700px; }
     }
 
     /* Mobile (< 700px) — bottom nav */
     @media (max-width: 700px) {
       .sidebar { display: none; }
-      .main {
-        margin-left: 0;
-        padding: 16px 14px 90px;
-      }
+      .main { margin-left: 0; padding: 16px 14px 90px; }
 
       /* Adaptations des cartes */
       .detail-grid { grid-template-columns: 1fr; gap: 12px; }
@@ -801,9 +803,9 @@
       .search-bar input,
       .search-bar select { width: 100%; }
 
-      /* Tableau → version compacte */
-      table thead th:nth-child(n+4) { display: none; }
-      table tbody td:nth-child(n+4) { display: none; }
+      /* Tableau scrollable horizontalement sur mobile */
+      .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      table { min-width: 600px; }
 
       /* Carte */
       #map { height: 220px; }
@@ -815,6 +817,9 @@
 
       /* Cards */
       .card { padding: 16px; }
+
+      /* Planning */
+      .planning-layout { grid-template-columns: 1fr; }
     }
   </style>
 
@@ -1228,7 +1233,7 @@
 <script>
 // ─── CONFIG ─────────────────────────────────────────────
 // ⚠️  Remplace cette URL par l'URL de ton Google Apps Script
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby2kFCfbRGzfpjat0DmE5E11n6RQKEK7YK80XVp9U5ep5ViKXwSV01sBeUHh-Zq9EQ/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/REMPLACE_PAR_TON_URL/exec";
 
 // ─── ÉTAT ────────────────────────────────────────────────
 let password = "";
