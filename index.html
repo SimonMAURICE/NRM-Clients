@@ -947,7 +947,7 @@
           <option value="nom">Trier par nom</option>
           <option value="ville">Trier par ville</option>
           <option value="region">Trier par région</option>
-          <option value="dateCreation">Trier par date</option>
+          <option value="numeroCap">Trier par N° CAP</option>
         </select>
       </div>
 
@@ -1409,7 +1409,12 @@ function renderTable() {
     return matchSearch && matchRegion;
   });
 
-  filtered.sort((a, b) => (a[sort] || '').localeCompare(b[sort] || ''));
+  filtered.sort((a, b) => {
+    if (sort === 'numeroCap') {
+      return (parseInt(a.numeroCap) || 0) - (parseInt(b.numeroCap) || 0);
+    }
+    return (a[sort] || '').localeCompare(b[sort] || '');
+  });
 
   const tbody = document.getElementById('table-body');
   const empty = document.getElementById('table-empty');
