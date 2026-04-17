@@ -995,6 +995,15 @@
               <div class="company" id="d-company"></div>
             </div>
           </div>
+          <div class="info-row" id="d-cap-row" style="margin-top:12px">
+            <div class="info-icon">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 3H8a2 2 0 0 0-2 2v2h12V5a2 2 0 0 0-2-2z"/></svg>
+            </div>
+            <div>
+              <div class="info-label">Numéro CAP</div>
+              <div class="info-value" id="d-cap"></div>
+            </div>
+          </div>
         </div>
 
         <!-- Localisation -->
@@ -1458,6 +1467,15 @@ function renderDetail(id) {
   document.getElementById('d-avatar').textContent = initials(c.nom, c.prenom);
   document.getElementById('d-fullname').textContent = `${c.prenom || ''} ${c.nom || ''}`.trim();
   document.getElementById('d-company').textContent = c.entreprise || '';
+
+  const capEl = document.getElementById('d-cap');
+  const capRow = document.getElementById('d-cap-row');
+  if (c.numeroCap) {
+    capEl.textContent = c.numeroCap;
+    capRow.style.display = 'flex';
+  } else {
+    capRow.style.display = 'none';
+  }
 
   const adresse = [c.adresse, c.codePostal, c.ville].filter(Boolean).join(', ');
   document.getElementById('d-adresse').textContent = adresse || '—';
