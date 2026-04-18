@@ -959,8 +959,8 @@
         <table id="client-table" style="display:none">
           <thead>
             <tr>
-              <th>Client</th>
               <th>Entreprise</th>
+              <th>Client</th>
               <th>Ville</th>
               <th>Région</th>
               <th>Téléphone</th>
@@ -1440,13 +1440,13 @@ function renderTable() {
 
     return `
     <tr onclick="goToDetail('${c.id}')">
+      <td>${c.entreprise || '<span style="color:var(--muted)">—</span>'}</td>
       <td>
         <div class="client-name-cell">
           <div class="avatar">${initials(c.nom, c.prenom)}</div>
           <span>${c.prenom || ''} ${c.nom || ''}</span>
         </div>
       </td>
-      <td>${c.entreprise || '<span style="color:var(--muted)">—</span>'}</td>
       <td>${c.ville || '<span style="color:var(--muted)">—</span>'}</td>
       <td>${c.region || '<span style="color:var(--muted)">—</span>'}</td>
       <td>${tel ? `<a href="tel:${tel}" onclick="event.stopPropagation()">${tel}</a>` : '<span style="color:var(--muted)">—</span>'}</td>
